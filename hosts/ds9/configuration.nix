@@ -150,6 +150,13 @@
   services.tailscale.enable = true;
   networking.firewall.trustedInterfaces = [ "tailscale0" ];
 
+  environment.persistence."/persist" = {
+    hideMounts = true;
+	directories = [
+	  "/var/lib/tailscale"
+	];
+  };
+
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
   # accidentally delete configuration.nix.
