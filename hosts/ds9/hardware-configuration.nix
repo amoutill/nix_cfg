@@ -45,12 +45,6 @@
       neededForBoot = true;
     };
 
-  fileSystems."/etc/nixos" =
-    { device = "/persist/etc/nixos";
-      fsType = "none";
-      options = [ "bind" ];
-    };
-
   swapDevices = [ ];
 
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
