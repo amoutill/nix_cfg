@@ -154,6 +154,7 @@
     hideMounts = true;
 	directories = [
 	  "/var/lib/tailscale"
+      "/var/lib/nixos"
 	];
   };
 
