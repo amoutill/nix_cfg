@@ -135,7 +135,7 @@
       AllowStreamLocalForwarding no
       AuthenticationMethods publickey
     '';
-	hostKeys = [
+    hostKeys = [
       {
         bits = 4096;
         path = "/persist/etc/ssh/ssh_host_rsa_key";
@@ -159,10 +159,10 @@
 
   environment.persistence."/persist" = {
     hideMounts = true;
-	directories = [
-	  "/var/lib/tailscale"
+    directories = [
+      "/var/lib/tailscale"
       "/var/lib/nixos"
-	];
+    ];
   };
 
   # Copy the NixOS configuration file and link it from the resulting system
