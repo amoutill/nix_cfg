@@ -164,6 +164,102 @@
       "/var/lib/nixos"
     ];
   };
+  services.openldap = {
+    enable = true;
+    settings = {
+      children = {
+        "cn=schema".includes = [
+          "${pkgs.openldap}/etc/schema/core.ldif"
+          "${pkgs.openldap}/etc/schema/cosine.ldif"
+          "${pkgs.openldap}/etc/schema/inetorgperson.ldif"
+          "${pkgs.openldap}/etc/schema/nis.ldif"
+        ];
+        "olcDatabase={1}mdb" = {
+          attrs = {
+            objectClass = [ "olcDatabaseConfig" "olcMdbConfig" ];
+            olcDatabase = "{1}mdb";
+            olcDbDirectory = "/var/lib/openldap/db";
+            olcSuffix = "dc=amoutillon,dc=com";
+            olcRootDN = "cn=admin,dc=amoutillon,dc=com";
+            olcAccess = [
+              /* custom access rules for userPassword attributes */
+              ''{0}to attrs=userPassword
+                  by self write
+                  by anonymous auth
+                  by * none''
+
+              /* allow read on anything else for users, deny for anyone else */
+              ''{1}to *
+                  by users read
+                  by * none''
+            ];
+          };
+        };
+      };
+    };
+    declarativeContents = {
+      "dc=amoutillon,dc=com" = ''
+        dn: dc=amoutillon,dc=com
+        objectClass: top
+        objectClass: dcObject
+        objectClass: organization
+        o: amoutillon.com
+
+        dn: ou=users,dc=amoutillon,dc=com
+        objectClass: organizationalUnit
+        ou: users
+
+        dn: ou=groups,dc=amoutillon,dc=com
+        objectClass: organizationalUnit
+        ou: groups
+
+        dn: cn=admins,ou=groups,dc=amoutillon,dc=com
+        objectClass: posixGroup
+        cn: admins
+        gidNumber: 10000
+
+        dn: cn=test,ou=groups,dc=amoutillon,dc=com
+        objectClass: posixGroup
+        cn: test
+        gidNumber: 11000
+
+        dn: uid=test,ou=users,dc=amoutillon,dc=com
+        objectClass: inetOrgPerson
+        objectClass: posixAccount
+        objectClass: organizationalPerson
+        uid: test
+        sn: Moutillon
+        givenName: Axel
+        cn: test
+        uidNumber: 11000
+        gidNumber: 11000
+        homeDirectory: /home/test
+        userPassword: ${builtins.readFile /persist/passwords/ldap/amoutill}
+      '';
+    };
+  };
+  
+  services.sssd = {
+    enable = true;
+    config = ''
+      [sssd]
+      services = nss, pam
+      config_file_version = 2
+
+      [domain/ldap]
+      id_provider = ldap
+      auth_provider = ldap
+      ldap_uri = "ldap://localhost"
+      ldap_search_base = "dc=amoutillon,dc=com"
+
+      # Configuration for using user's credentials directly
+      # Do not specify a bind_dn or bind_password
+      # Set user and group search bases as needed
+      ldap_user_search_base = "ou=users,dc=amoutillon,dc=com"
+      ldap_group_search_base = "ou=groups,dc=amoutillon,dc=com"
+    '';
+  };
+
 
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
